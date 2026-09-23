@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TikTok OAuth callback</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 48px auto; padding: 0 16px; line-height: 1.6 }
+  code { background: #f2f2f2; padding: 2px 6px; border-radius: 4px; word-break: break-all }
+  #code { display: block; margin: 12px 0; padding: 12px; background: #f2f2f2; border-radius: 6px; word-break: break-all }
+  .err { color: #b00 }
+</style>
+</head>
+<body>
+<h2>TikTok OAuth callback</h2>
+<p id="msg">กำลังส่ง code กลับไปที่เครื่อง…</p>
+<div id="out" hidden>
+  <p>ถ้าไม่เด้งกลับเอง ให้ copy ค่า <b>code</b> ข้างล่างไป paste ในเทอร์มินัลที่รัน <code>auth.py</code></p>
+  <code id="code"></code>
+</div>
+<script>
+// Static bridge for the TikTok Content Posting API OAuth flow: the developer
+// portal only accepts https redirect URIs, so TikTok lands here and this page
+// hands the authorization code back to the local listener (auth.py, port 51790).
+(function () {
+  var q = new URLSearchParams(location.search);
+  var code = q.get("code"), state = q.get("state"), err = q.get("error");
+  var msg = document.getElementById("msg");
+  if (err) {
+    msg.className = "err";
+    msg.textContent = "TikTok ตอบ error: " + err + " " + (q.get("error_description") || "");
+    return;
+  }
+  if (!code) {
+    msg.className = "err";
+    msg.textContent = "ไม่มี code ใน URL";
+    return;
+  }
+  document.getElementById("code").textContent = code;
+  document.getElementById("out").hidden = false;
+  var local = "http://127.0.0.1:51790/callback?code=" + encodeURIComponent(code) +
+              "&state=" + encodeURIComponent(state || "");
+  location.replace(local);
+})();
+</script>
+</body>
+</html>
